@@ -17,6 +17,8 @@ main.d main.o: .././main.c \
  f:\installed_programs\electronics\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\string.h \
  f:\installed_programs\electronics\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\avr\pgmspace.h \
  f:\installed_programs\electronics\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\avr\eeprom.h \
+ .././libs/watchdog/wd.h \
+ f:\installed_programs\electronics\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\avr\wdt.h \
  .././libs/utils/bit_tools.h .././libs/utils/my_utils.h \
  f:\installed_programs\electronics\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\util\delay.h \
  f:\installed_programs\electronics\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\util\delay_basic.h \
@@ -61,6 +63,10 @@ f:\installed_programs\electronics\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.10
 f:\installed_programs\electronics\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\avr\pgmspace.h:
 
 f:\installed_programs\electronics\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\avr\eeprom.h:
+
+.././libs/watchdog/wd.h:
+
+f:\installed_programs\electronics\atmel\atmel\ toolchain\avr8\ gcc\native\3.4.1061\avr8-gnu-toolchain\avr\include\avr\wdt.h:
 
 .././libs/utils/bit_tools.h:
 

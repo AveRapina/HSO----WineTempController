@@ -8,6 +8,7 @@
 
 #define F_CPU 16000000UL
 
+
 #include <avr/io.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -15,6 +16,7 @@
 #include <string.h>
 #include <avr/pgmspace.h>
 #include <avr/eeprom.h>
+#include "libs/watchdog/wd.h"
 
 #include "libs/utils/bit_tools.h"
 #include "libs/utils/my_utils.h"
@@ -50,6 +52,7 @@ void eepromSetDefaultParameters(void);
 void paramLoadFromEeprom(void);
 void paramSavetoEeprom(void);
 
+//#define  USE_WDT
 
 // Debug stuff
 //#define MAIN_DEBUG
@@ -166,8 +169,8 @@ uint8_t decodeButton(uint8_t button){
 /************************************************************************/
 uint8_t debounceKey(uint8_t codeNew){
 	uint8_t key =0; // by default
-	static codeOld;
-	static keyCount;
+	static uint8_t codeOld;
+	static uint8_t keyCount;
 	
 	// ALREADY SOMETHIN PRESSED
 	if(keyCount != 0){
@@ -322,8 +325,8 @@ void setHistSetPoint(uint8_t up){
 
 // read temteprature
 double readTemperatures(void){
-	//return DS18_getTemp();
-	return ds18b20_gettemp();
+	return ds18b20_getTempAndWait();
+	//return ds18b20_gettemp();
 	
 }
 
@@ -542,19 +545,30 @@ void updateLcd(void){
 }
 
 
+
+#define DS18B20_STATUS_READY 0
+#define DS18B20_STATUS_CONV 1
+#define DS18B20_STATUS_END_CONV 2
+
 // main loop
 int main(void){
+	
+	uint8_t stateDS18=DS18B20_STATUS_READY;
+	
+	#ifdef USE_WDT
+	WDT_init(WDTO_8S); 
+	#endif
+	
 	
 	initGPIO();
 	LCD_init();
 	
-	
-	
-	
 	showLcdSplash();
+		
 	setLcdInitialFields();
+		
 	paramLoadFromEeprom();
-	
+		
 	USART1_config(USART1_MY_UBBRN,USART_DATA_FORMAT_8BITS|USART_STOP_BITS_1,USART_TRANSMIT_ENABLE|USART_RECEIVE_ENABLE| USART_INTERRUPT_ENABLE);
 	
 	USART1_sendStr("Hello");
@@ -562,32 +576,59 @@ int main(void){
 	schedulerInit();
 	
 	// check for the default values
+	#ifdef USE_WDT
+	WDT_init(WDTO_8S);
+	#endif
+	
 	
 	sei(); //enable interrups
 	
-	// loop while
-	
+	// loop while	
     while(1){
 		
 		
 		// cintrol zone
 		if(flagTaskControl){
+			#ifdef USE_WDT
+			WDT_reset();
+			#endif
 			
-			LED_RUN_ON;
-			//currentTemp = readTemperature();
-			//currentTemp -=1.0;
-			_delay_ms(50);
+			
 			LED_RUN_OFF;
+			// fire the DS
+			if(stateDS18==DS18B20_STATUS_READY){
+				DS18B20_startConv();
+				stateDS18=DS18B20_STATUS_CONV;
 			
+			// check if convertion ended	
+			}else if(stateDS18==DS18B20_STATUS_CONV){
+				if(DS18B20_convComplete()){
+					stateDS18=DS18B20_STATUS_END_CONV;
+				}
 			
+			// convertion ready	
+			}else if (stateDS18==DS18B20_STATUS_END_CONV){
+				LED_RUN_ON;
+				currentTemp=DS18B20_getTemp();
+				stateDS18=DS18B20_STATUS_READY;
+				
+				currentStatus = checkTempError(currentTemp,currentTempSetPoint,currentHistSetPoint); // chec the out
+				setOutputRelay(currentStatus);
+				_delay_ms(50);
+				LED_RUN_OFF;
+					
+				
+			}
 			
-			currentStatus = checkTempError(currentTemp,currentTempSetPoint,currentHistSetPoint); // chec the out
-			setOutputRelay(currentStatus);
 			flagTaskControl=0;
 		}
 		
 		// user bottons area
 		if(flagTaskReadButtons){
+			#ifdef USE_WDT
+			WDT_reset();
+			#endif
+			
 			uint8_t portVal = readButtons();
 			uint8_t code = decodeButton(portVal);
 			code = debounceKey(code);
@@ -605,7 +646,9 @@ int main(void){
 		 
 		 // lcd update area
 		 if(flagTaskUpdateLcd){
-			 
+			 #ifdef USE_WDT
+			 WDT_reset();
+			 #endif
 			 //showLcdSavedMessage();
 			 updateLcd(); // update the lcd
 			 
@@ -614,6 +657,9 @@ int main(void){
 		 
 		 // save to eeprom
 		 if(flagSaveParametersEeprom){
+			 #ifdef USE_WDT
+			 WDT_reset();
+			 #endif
 			 
 			 paramSavetoEeprom(); // save value sto eeprom
 			 showLcdSavedMessage();

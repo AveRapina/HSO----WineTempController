@@ -6,8 +6,6 @@ libs\adc\adc_analog.c
 
 libs\ade775x\ade77xx.c
 
-libs\ds182x\ds1820.c
-
 libs\ds182x\ds18b20.c
 
 libs\eeprom\eeprom.c
@@ -65,6 +63,8 @@ libs\tsl256x\tsl2561.c
 libs\usart\usart.c
 
 libs\utils\my_utils.c
+
+libs\watchdog\wd.c
 
 main.c
 

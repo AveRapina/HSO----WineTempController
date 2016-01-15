@@ -110,12 +110,6 @@
     <Compile Include="libs\ade775x\ade77xx.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="libs\ds182x\ds1820.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="libs\ds182x\ds1820.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="libs\ds182x\ds18b20.c">
       <SubType>compile</SubType>
     </Compile>
@@ -296,6 +290,12 @@
     <Compile Include="libs\utils\my_utils.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="libs\watchdog\wd.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="libs\watchdog\wd.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>
@@ -322,6 +322,7 @@
     <Folder Include="libs\mhz14\" />
     <Folder Include="libs\modbus\" />
     <Folder Include="libs\motors\" />
+    <Folder Include="libs\watchdog" />
     <Folder Include="libs\nmea\" />
     <Folder Include="libs\ntc\" />
     <Folder Include="libs\pca95xx\" />

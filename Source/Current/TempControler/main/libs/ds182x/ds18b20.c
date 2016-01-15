@@ -1,11 +1,10 @@
-/*
-ds18b20 lib 0x02
 
-copyright (c) Davide Gironi, 2012
+#ifndef F_CPU
+	#define F_CPU 16000000UL
+#endif
 
-Released under GPLv3.
-Please refer to LICENSE file for licensing information.
-*/
+
+
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -15,10 +14,12 @@ Please refer to LICENSE file for licensing information.
 #include "../usart/usart.h"
 
 
+//#define DEBUG_DS18
+
 /*
  * ds18b20 init
  */
-uint8_t ds18b20_reset() {
+uint8_t DS_reset() {
 	uint8_t i;
 
 	//low for 480us
@@ -41,7 +42,7 @@ uint8_t ds18b20_reset() {
 /*
  * write one bit
  */
-void ds18b20_writebit(uint8_t bit){
+void DS_writeBit(uint8_t bit){
 	//low for 1uS
 	DS18B20_PORT &= ~ (1<<DS18B20_DQ); //low
 	DS18B20_DDR |= (1<<DS18B20_DQ); //output
@@ -59,7 +60,7 @@ void ds18b20_writebit(uint8_t bit){
 /*
  * read one bit
  */
-uint8_t ds18b20_readbit(void){
+uint8_t DS_readBit(void){
 	uint8_t bit=0;
 
 	//low for 1uS
@@ -83,10 +84,10 @@ uint8_t ds18b20_readbit(void){
 /*
  * write one byte
  */
-void ds18b20_writebyte(uint8_t byte){
+void DS_writeByte(uint8_t byte){
 	uint8_t i=8;
 	while(i--){
-		ds18b20_writebit(byte&1);
+		DS_writeBit(byte&1);
 		byte >>= 1;
 	}
 }
@@ -94,19 +95,62 @@ void ds18b20_writebyte(uint8_t byte){
 /*
  * read one byte
  */
-uint8_t ds18b20_readbyte(void){
+uint8_t DS_readByte(void){
 	uint8_t i=8, n=0;
 	while(i--){
 		n >>= 1;
-		n |= (ds18b20_readbit()<<7);
+		n |= (DS_readBit()<<7);
 	}
 	return n;
+}
+
+
+
+void DS18B20_startConv(void){
+	DS_reset(); //reset
+	DS_writeByte(DS18B20_CMD_SKIPROM); //skip ROM
+	DS_writeByte(DS18B20_CMD_CONVERTTEMP); //start temperature conversion
+}
+
+/************************************************************************/
+/* @check if ds as finished                                                                     */
+/************************************************************************/
+uint8_t DS18B20_convComplete(void){
+	return DS_readBit(); //wait until conversion is complete
+	
+}
+
+double DS18B20_getTemp(void){
+	uint8_t temperature_l;
+	uint8_t temperature_h;
+	double retd = 0;
+	
+	DS_reset(); //reset
+	DS_writeByte(DS18B20_CMD_SKIPROM); //skip ROM
+	DS_writeByte(DS18B20_CMD_RSCRATCHPAD); //read scratchpad
+
+	//read 2 byte from scratchpad
+	temperature_l = DS_readByte();
+	temperature_h = DS_readByte();
+	
+	
+	
+	#ifdef DEBUG_DS18
+	char buffer[10];
+	sprintf(buffer,"%x:%x\n\r",temperature_h,temperature_l);
+	USART1_sendStr(buffer);
+	#endif
+	
+	//convert the 12 bit value obtained
+	retd = ( ( temperature_h << 8 ) + temperature_l ) * 0.0625 ;
+
+	return retd;
 }
 
 /*
  * get temperature
  */
-double ds18b20_gettemp() {
+double ds18b20_getTempAndWait() {
 	uint8_t temperature_l;
 	uint8_t temperature_h;
 	double retd = 0;
@@ -115,29 +159,31 @@ double ds18b20_gettemp() {
 	cli();
 	#endif
 
-	ds18b20_reset(); //reset
-	ds18b20_writebyte(DS18B20_CMD_SKIPROM); //skip ROM
-	ds18b20_writebyte(DS18B20_CMD_CONVERTTEMP); //start temperature conversion
+	DS_reset(); //reset
+	DS_writeByte(DS18B20_CMD_SKIPROM); //skip ROM
+	DS_writeByte(DS18B20_CMD_CONVERTTEMP); //start temperature conversion
 
-	while(!ds18b20_readbit()); //wait until conversion is complete
+	while(!DS_readBit()); //wait until conversion is complete
 
-	ds18b20_reset(); //reset
-	ds18b20_writebyte(DS18B20_CMD_SKIPROM); //skip ROM
-	ds18b20_writebyte(DS18B20_CMD_RSCRATCHPAD); //read scratchpad
+	DS_reset(); //reset
+	DS_writeByte(DS18B20_CMD_SKIPROM); //skip ROM
+	DS_writeByte(DS18B20_CMD_RSCRATCHPAD); //read scratchpad
 
 	//read 2 byte from scratchpad
-	temperature_l = ds18b20_readbyte();
-	temperature_h = ds18b20_readbyte();
+	temperature_l = DS_readByte();
+	temperature_h = DS_readByte();
 
 	#if DS18B20_STOPINTERRUPTONREAD == 1
 	sei();
 	#endif
 	
+	#ifdef DEBUG_DS18
 	char buffer[10];
-	sprintf(buffer,"%d:%d\n\r",temperature_h,temperature_l);
+	sprintf(buffer,"%x:%x\n\r",temperature_h,temperature_l);
 	USART1_sendStr(buffer);
+	#endif
 	//convert the 12 bit value obtained
-	retd = ( ( temperature_h << 8 ) + temperature_l ) * 0.0625;
+	retd = ( ( temperature_h << 8 ) + temperature_l ) * 0.0625 ;
 
 	return retd;
 }

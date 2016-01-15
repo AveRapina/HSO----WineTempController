@@ -54,6 +54,7 @@ SUBDIRS :=  \
 ../libs/mhz14/ \
 ../libs/modbus/ \
 ../libs/motors/ \
+../libs/watchdog \
 ../libs/nmea/ \
 ../libs/ntc/ \
 ../libs/pca95xx/ \
@@ -73,7 +74,6 @@ SUBDIRS :=  \
 C_SRCS +=  \
 ../libs/adc/adc_analog.c \
 ../libs/ade775x/ade77xx.c \
-../libs/ds182x/ds1820.c \
 ../libs/ds182x/ds18b20.c \
 ../libs/eeprom/eeprom.c \
 ../libs/i2c/twi.c \
@@ -103,6 +103,7 @@ C_SRCS +=  \
 ../libs/tsl256x/tsl2561.c \
 ../libs/usart/usart.c \
 ../libs/utils/my_utils.c \
+../libs/watchdog/wd.c \
 ../main.c
 
 
@@ -115,7 +116,6 @@ ASM_SRCS +=
 OBJS +=  \
 libs/adc/adc_analog.o \
 libs/ade775x/ade77xx.o \
-libs/ds182x/ds1820.o \
 libs/ds182x/ds18b20.o \
 libs/eeprom/eeprom.o \
 libs/i2c/twi.o \
@@ -145,12 +145,12 @@ libs/spi/my_spi.o \
 libs/tsl256x/tsl2561.o \
 libs/usart/usart.o \
 libs/utils/my_utils.o \
+libs/watchdog/wd.o \
 main.o
 
 OBJS_AS_ARGS +=  \
 libs/adc/adc_analog.o \
 libs/ade775x/ade77xx.o \
-libs/ds182x/ds1820.o \
 libs/ds182x/ds18b20.o \
 libs/eeprom/eeprom.o \
 libs/i2c/twi.o \
@@ -180,12 +180,12 @@ libs/spi/my_spi.o \
 libs/tsl256x/tsl2561.o \
 libs/usart/usart.o \
 libs/utils/my_utils.o \
+libs/watchdog/wd.o \
 main.o
 
 C_DEPS +=  \
 libs/adc/adc_analog.d \
 libs/ade775x/ade77xx.d \
-libs/ds182x/ds1820.d \
 libs/ds182x/ds18b20.d \
 libs/eeprom/eeprom.d \
 libs/i2c/twi.d \
@@ -215,12 +215,12 @@ libs/spi/my_spi.d \
 libs/tsl256x/tsl2561.d \
 libs/usart/usart.d \
 libs/utils/my_utils.d \
+libs/watchdog/wd.d \
 main.d
 
 C_DEPS_AS_ARGS +=  \
 libs/adc/adc_analog.d \
 libs/ade775x/ade77xx.d \
-libs/ds182x/ds1820.d \
 libs/ds182x/ds18b20.d \
 libs/eeprom/eeprom.d \
 libs/i2c/twi.d \
@@ -250,6 +250,7 @@ libs/spi/my_spi.d \
 libs/tsl256x/tsl2561.d \
 libs/usart/usart.d \
 libs/utils/my_utils.d \
+libs/watchdog/wd.d \
 main.d
 
 OUTPUT_FILE_PATH +=main.elf
@@ -495,6 +496,13 @@ libs/usart/%.o: ../libs/usart/%.c
 	
 
 libs/utils/%.o: ../libs/utils/%.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 4.8.1
+	$(QUOTE)F:\Installed_Programs\Electronics\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.1061\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega128 -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+libs/watchdog/%.o: ../libs/watchdog/%.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 4.8.1
 	$(QUOTE)F:\Installed_Programs\Electronics\Atmel\Atmel Toolchain\AVR8 GCC\Native\3.4.1061\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega128 -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
